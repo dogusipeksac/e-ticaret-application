@@ -6,8 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 class NotificationService{
   ///turn current user's notification list
   Stream<List<NotificationModel>> getUserNotificationList(){
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return const Stream.empty();
     var snapshots = NotificationModel.getPath
-        .where("user_id",isEqualTo: FirebaseAuth.instance.currentUser.uid)
+        .where("user_id",isEqualTo: uid)
         .snapshots();
     var notificationList = snapshots.map((qShot) => qShot.docs
         .map((doc) => NotificationModel.fromSnapshot(doc))
@@ -37,8 +39,9 @@ class NotificationService{
   }
   ///update notification
   updateNotification(NotificationModel notificationModel){
-    NotificationModel.getPath.doc(notificationModel.id)
-        .update(NotificationModel().toMap(notificationModel));
+    NotificationModel.getPath
+        .doc(notificationModel.id)
+        .update(notificationModel.toMap());
   }
 
 }

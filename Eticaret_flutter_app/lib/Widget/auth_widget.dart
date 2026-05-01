@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 
 
 class AuthWidget extends StatelessWidget {
-  const AuthWidget({Key key, @required this.userSnapshot}) : super(key: key);
-  final AsyncSnapshot<User> userSnapshot;
+  const AuthWidget({super.key, required this.userSnapshot});
+  final AsyncSnapshot<User?> userSnapshot;
 
   @override
   Widget build(BuildContext context) {

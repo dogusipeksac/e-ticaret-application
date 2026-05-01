@@ -6,19 +6,20 @@ import 'package:e_ticaret_flutter_app/View/message_list_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import '../DesignStyle/colors_cons.dart';
 
 class MessageDetailPage extends StatefulWidget {
   static String routeName = '/routeMessageDetailPage';
 
-  final String conservationId;
-  final Product product;
+  final String? conservationId;
+  final Product? product;
 
-  const MessageDetailPage({Key key, this.conservationId, this.product})
-      : super(key: key);
+  const MessageDetailPage({
+    super.key,
+    this.conservationId,
+    this.product,
+  });
 
   @override
   _MessageDetailState createState() => _MessageDetailState();
@@ -29,20 +30,21 @@ MessageService _messageService = MessageService();
 
 class _MessageDetailState extends State<MessageDetailPage> {
   MessageService _service = MessageService();
-  FocusNode _focusNode;
-  ScrollController _scrollController;
-  var _ref;
+  late final FocusNode _focusNode;
+  late final ScrollController _scrollController;
+  late final CollectionReference _ref;
   @override
   void initState() {
+    final conservationId = widget.conservationId ?? '';
     _ref = FirebaseFirestore.instance
-        .collection("Conversitons/${widget.conservationId}/Messages");
+        .collection("Conversitons/$conservationId/Messages");
     _focusNode = FocusNode();
     _scrollController = ScrollController();
     super.initState();
   }
 
   @override
-  dispose() {
+  void dispose() {
     _focusNode.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -63,12 +65,13 @@ class _MessageDetailState extends State<MessageDetailPage> {
                   onTap: () => _focusNode.unfocus(),
                   child: StreamBuilder<DocumentSnapshot>(
                       stream:
-                          _service.getConversitonsPath(widget.conservationId),
+                          _service.getConversitonsPath(widget.conservationId ?? ''),
                       builder: (context,
                           AsyncSnapshot<DocumentSnapshot> docsnapshot) {
+                        final docData = docsnapshot.data?.data() as Map<String, dynamic>?;
                         return StreamBuilder(
                             stream: _messageService
-                                .getMessage(widget.conservationId),
+                                .getMessage(widget.conservationId ?? ''),
                             builder: (BuildContext context,
                                 AsyncSnapshot<List<Message>> snapshot) {
                               if (snapshot.hasError || docsnapshot.hasError) {
@@ -80,12 +83,13 @@ class _MessageDetailState extends State<MessageDetailPage> {
                                       ConnectionState.waiting) {
                                 return Center(child: CircularProgressIndicator());
                               }
+                              final messages = snapshot.data ?? <Message>[];
                               return ListView.builder(
                                 controller: _scrollController,
-                                itemCount: snapshot.data.length,
+                                itemCount: messages.length,
                                 itemBuilder: ((context, index) {
                                   var messageSnapshot =
-                                      snapshot.data.elementAt(index);
+                                      messages.elementAt(index);
                                   return Container(
                                     padding: EdgeInsets.only(
                                         left: 14,
@@ -109,15 +113,11 @@ class _MessageDetailState extends State<MessageDetailPage> {
                                                   child: Row(
                                                     children: [
                                                       CircleAvatar(
-                                                        backgroundImage: NetworkImage(user
-                                                                    .uid !=
-                                                                docsnapshot
-                                                                        .data[
-                                                                    'productUserId']
-                                                            ? docsnapshot.data[
-                                                                'receiverImage']
-                                                            : docsnapshot.data[
-                                                                'senderImage']),
+                                                        backgroundImage: NetworkImage(
+                                                          user.uid != docData?['productUserId']
+                                                              ? (docData?['receiverImage'] ?? '')
+                                                              : (docData?['senderImage'] ?? ''),
+                                                        ),
                                                       ),
                                                       Padding(
                                                         padding:
@@ -126,15 +126,9 @@ class _MessageDetailState extends State<MessageDetailPage> {
                                                                 left: 8.0),
                                                         child: Text(
                                                           user.uid !=
-                                                                  docsnapshot
-                                                                          .data[
-                                                                      'productUserId']
-                                                              ? docsnapshot
-                                                                      .data[
-                                                                  'receiverName']
-                                                              : docsnapshot
-                                                                      .data[
-                                                                  'senderName'],
+                                                                  docData?['productUserId']
+                                                              ? (docData?['receiverName'] ?? '')
+                                                              : (docData?['senderName'] ?? ''),
                                                           style: TextStyle(
                                                               color:
                                                                   themeColor),
@@ -157,7 +151,7 @@ class _MessageDetailState extends State<MessageDetailPage> {
                                             ),
                                             padding: EdgeInsets.all(16),
                                             child: Text(
-                                              messageSnapshot.message,
+                                              messageSnapshot.message ?? '',
                                               style: TextStyle(
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.bold,
@@ -215,7 +209,7 @@ class _MessageDetailState extends State<MessageDetailPage> {
                       await _messageService.addMessage(
                           messageEditingController.text,
                           user.uid,
-                          widget.conservationId);
+                          widget.conservationId ?? '');
 
                       messageEditingController.text = '';
                     },
@@ -242,7 +236,7 @@ class _MessageDetailState extends State<MessageDetailPage> {
       backgroundColor: filterBackground,
       flexibleSpace: Consumer<User>(
         builder: (context, user, child) => StreamBuilder<DocumentSnapshot>(
-            stream: _service.getConversitonsPath(widget.conservationId),
+            stream: _service.getConversitonsPath(widget.conservationId ?? ''),
             builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
               if (snapshot.hasError) {
                 return Text("Birşeyler yanlış gitti");
@@ -252,6 +246,7 @@ class _MessageDetailState extends State<MessageDetailPage> {
                   child: CircularProgressIndicator(),
                 );
               }
+              final data = snapshot.data?.data() as Map<String, dynamic>?;
               return SafeArea(
                 child: Container(
                   child: Row(
@@ -261,7 +256,7 @@ class _MessageDetailState extends State<MessageDetailPage> {
                           padding: const EdgeInsets.all(10.0),
                           child: Image(
                             fit: BoxFit.fill,
-                            image: NetworkImage(snapshot.data['productImage']),
+                            image: NetworkImage((data?['productImage'] ?? '').toString()),
                           ),
                         ),
                       ),
@@ -272,7 +267,7 @@ class _MessageDetailState extends State<MessageDetailPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             Text(
-                              snapshot.data['title'],
+                              (data?['title'] ?? '').toString(),
                               style: TextStyle(
                                   color: themeColor,
                                   fontSize: 18,
@@ -282,7 +277,7 @@ class _MessageDetailState extends State<MessageDetailPage> {
                               height: 6,
                             ),
                             Text(
-                              snapshot.data['productPrize'].toString(),
+                              (data?['productPrize'] ?? '').toString(),
                               style: TextStyle(color: text, fontSize: 15),
                             ),
                           ],

@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
   ScrollController scrollController = ScrollController();
   ProductShareService _productShareService = ProductShareService();
   FilterService _filterService = FilterService();
-  Stream productDatas;
+  late final Stream<List<Product>> productDatas;
   double topContainer = 0;
   bool closeTopContainer = false;
   bool filtered = false;
@@ -40,9 +40,11 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     _products.forEach((product) {
-      if (product.productTitle.contains(text) ||
-          product.productOfDescription.contains(text) ||
-          product.productCategory.contains(text)) _searchResult.add(product);
+      if ((product.productTitle ?? '').contains(text) ||
+          (product.productOfDescription ?? '').contains(text) ||
+          (product.productCategory ?? '').contains(text)) {
+        _searchResult.add(product);
+      }
     });
     setState(() {});
   }
@@ -52,14 +54,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    if(FilterService.getQuery == null){
-      productDatas = _productShareService.getProduct();
-      filtered = false;
-    }else{
-      productDatas = _filterService.filteredProductList();
-      filtered = true;
-    }
-    scrollController.addListener(() {
+    productDatas = _filterService.filteredProductList();
+    filtered = true;
+      scrollController.addListener(() {
       double value = scrollController.offset / 150;
       bool newBool = scrollController.offset > 50;
       if(newBool != closeTopContainer){
@@ -145,7 +142,8 @@ class _HomePageState extends State<HomePage> {
             stream: productDatas,
             builder:
                 (BuildContext context, AsyncSnapshot<List<Product>> snapshot) {
-              _products = snapshot.data;
+              final products = snapshot.data ?? <Product>[];
+              _products = products;
               if (snapshot.hasError) {
                 return Text(snapshot.error.toString());
               }
@@ -154,7 +152,7 @@ class _HomePageState extends State<HomePage> {
                   child: CircularProgressIndicator(),
                 );
               }
-              if (snapshot.hasData && snapshot.data.isEmpty) {
+              if (products.isEmpty) {
                 return Center(
                     child: Text("Ürün Bulunamadı!",
                       style: TextStyle(color: Colors.white,fontSize: 30),
@@ -180,22 +178,20 @@ class _HomePageState extends State<HomePage> {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: StaggeredGridView.countBuilder(
+                        child: MasonryGridView.count(
                           controller: scrollController,
                           physics: BouncingScrollPhysics(),
                           crossAxisCount: 2,
                           itemCount: _searchResult.isNotEmpty
                               ? _searchResult.length
-                              : snapshot.data.length,
+                              : products.length,
                           itemBuilder: (context, index) {
                             return CardView(
                               product: _searchResult.isNotEmpty
                                   ? _searchResult.elementAt(index)
-                                  : snapshot.data.elementAt(index),
+                                  : products.elementAt(index),
                             );
                           },
-                          staggeredTileBuilder: (index) => StaggeredTile.count(
-                              /*(index % 7 == 0) ? 2 : */1, /*(index % 7 == 0) ? 2 :*/ 1.4),
                           mainAxisSpacing: 20.0,
                           crossAxisSpacing: 5.0,
                         ),

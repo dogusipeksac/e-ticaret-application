@@ -20,40 +20,40 @@ class ProductSharePage extends StatefulWidget {
 }
 
 class _ProductSharePageState extends State<ProductSharePage> {
-  String valueChoseCategory;
-  String valueChoseProductlocation;
+  String? valueChoseCategory;
+  String? valueChoseProductlocation;
 
   ProductShareService _productSharePage = ProductShareService();
   //
   final ImagePicker imagePicker = ImagePicker();
-  PickedFile profilImage;
+  XFile? profilImage;
   FirebaseAuth auth = FirebaseAuth.instance;
   List<File> image = [];
   List<String> urls = [];
 
-  CollectionReference imgRef;
+  CollectionReference? imgRef;
   bool uploading = false;
   double val = 0;
-  firebase_storage.Reference ref;
+  firebase_storage.Reference? ref;
 
   final TextEditingController _title = TextEditingController();
   final TextEditingController _price = TextEditingController();
   TextEditingController _explain = TextEditingController();
   //FocusNode _focusNode;
 
-  List listItemCategory = [
+  List<String> listItemCategory = [
     "2.El Araç",
     "1.El Araç",
     "Teknoloji",
     "Telefon",
     "Giyim"
   ];
-  List listItemProductLocation = ["Adana", "Mersin", "İstanbul", "Malatya"];
+  List<String> listItemProductLocation = ["Adana", "Mersin", "İstanbul", "Malatya"];
 
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool validation() {
-    final FormState _form = _formKey.currentState;
-    if (_form.validate()) {
+    final FormState? form = _formKey.currentState;
+    if (form != null && form.validate()) {
       return true;
     } else {
       return false;
@@ -61,10 +61,10 @@ class _ProductSharePageState extends State<ProductSharePage> {
   }
 
   choseImage() async {
-    final pickedFile = await imagePicker.getImage(source: ImageSource.gallery);
+    final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) return;
     setState(() {
       image.add(File(pickedFile.path));
-      if (pickedFile == null) retrieveLostData();
     });
   }
 
@@ -76,11 +76,13 @@ class _ProductSharePageState extends State<ProductSharePage> {
       });
       ref = firebase_storage.FirebaseStorage.instance
           .ref()
-          .child('Product Image Files/${auth.currentUser.uid}')
+          .child('Product Image Files/${auth.currentUser?.uid ?? 'anonymous'}')
           .child(Path.basename(img.path));
 
-      await ref.putFile(img).whenComplete(() async {
-        await ref.getDownloadURL().then((value) {
+      final localRef = ref;
+      if (localRef == null) continue;
+      await localRef.putFile(img).whenComplete(() async {
+        await localRef.getDownloadURL().then((value) {
           urls.add(value);
         });
       });
@@ -88,23 +90,14 @@ class _ProductSharePageState extends State<ProductSharePage> {
     }
   }
 
-  Future<void> retrieveLostData() async {
-    final LostData response = await imagePicker.getLostData();
-    if (response.file != null) {
-      setState(() {
-        image.add(File(response.file.path));
-      });
-    } else {
-      print(response.file);
-    }
-  }
+  // Lost-data recovery APIs were removed from image_picker.
 
   @override
   Widget build(BuildContext context) {
     final title = TextFormField(
         //focusNode: _focusNode,
         validator: (value) {
-          if (value == "") {
+          if (value == null || value.isEmpty) {
             return "Boş bırakılmaz.";
           } else if (value.length < 5) {
             return "En az 5 karakter olmalı başlık";
@@ -124,13 +117,12 @@ class _ProductSharePageState extends State<ProductSharePage> {
     final price = TextFormField(
         //focusNode: _focusNode,
         validator: (value) {
-          if (value == "") {
+          if (value == null || value.isEmpty) {
             return "Boş bırakılmaz.";
           }
           return null;
         },
-        // ignore: deprecated_member_use
-        inputFormatters: [WhitelistingTextInputFormatter.digitsOnly],
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         keyboardType: TextInputType.number,
         controller: _price,
         obscureText: false,
@@ -145,7 +137,7 @@ class _ProductSharePageState extends State<ProductSharePage> {
     final explane = TextFormField(
         //focusNode: _focusNode,
         validator: (value) {
-          if (value == "") {
+          if (value == null || value.isEmpty) {
             return "Boş bırakılmaz.";
           } else if (value.length < 10) {
             return "En az 10 karakter olmalı başlık";
@@ -237,7 +229,7 @@ class _ProductSharePageState extends State<ProductSharePage> {
                 SizedBox(
                   height: 20,
                 ),
-                DropdownButtonFormField(
+                DropdownButtonFormField<String>(
                   //focusNode: _focusNode,
                   validator: (value) {
                     if (value == null) {
@@ -253,15 +245,15 @@ class _ProductSharePageState extends State<ProductSharePage> {
                   iconSize: 20,
                   isExpanded: true,
                   decoration: inputDecoraton("Bir kategori seç..."),
-                  value: valueChoseCategory,
+                  initialValue: valueChoseCategory,
                   style: textStyle,
                   onChanged: (newValue) {
                     setState(() {
                       valueChoseCategory = newValue;
                     });
                   },
-                  items: listItemCategory.map((valueItem) {
-                    return DropdownMenuItem(
+                  items: listItemCategory.map<DropdownMenuItem<String>>((valueItem) {
+                    return DropdownMenuItem<String>(
                       value: valueItem,
                       child: Text(valueItem),
                     );
@@ -299,7 +291,7 @@ class _ProductSharePageState extends State<ProductSharePage> {
                 SizedBox(
                   height: 20,
                 ),
-                DropdownButtonFormField(
+                DropdownButtonFormField<String>(
                   //focusNode: _focusNode,
                   validator: (value) {
                     if (value == null) {
@@ -315,15 +307,15 @@ class _ProductSharePageState extends State<ProductSharePage> {
                   iconSize: 20,
                   isExpanded: true,
                   decoration: inputDecoraton("Bir şehir seç..."),
-                  value: valueChoseProductlocation,
+                  initialValue: valueChoseProductlocation,
                   style: textStyle,
                   onChanged: (newValue) {
                     setState(() {
                       valueChoseProductlocation = newValue;
                     });
                   },
-                  items: listItemProductLocation.map((valueItem) {
-                    return DropdownMenuItem(
+                  items: listItemProductLocation.map<DropdownMenuItem<String>>((valueItem) {
+                    return DropdownMenuItem<String>(
                       value: valueItem,
                       child: Text(valueItem),
                     );
@@ -351,22 +343,22 @@ class _ProductSharePageState extends State<ProductSharePage> {
                     color: themeColor,
                     borderRadius: BorderRadius.circular(30),
                   ),
-                  child: FlatButton(
+                  child: TextButton(
                     onPressed: () {
                       setState(() {
                         if (validation()) {
                           uploadFile().whenComplete(() => _productSharePage
                               .addProduct(
-                                  auth.currentUser.uid,
+                                  auth.currentUser?.uid ?? '',
                                   urls.length >= 1 ? urls[0] : "",
                                   urls.length >= 2 ? urls[1] : "",
                                   urls.length >= 3 ? urls[2] : "",
                                   urls.length >= 4 ? urls[3] : "",
                                   urls.length >= 5 ? urls[4] : "",
-                                  valueChoseCategory,
+                                  valueChoseCategory ?? '',
                                   _title.text,
                                   int.parse(_price.text),
-                              valueChoseProductlocation,
+                                  valueChoseProductlocation ?? '',
                                   _explain.text)
                               .whenComplete(() => Navigator.pushNamed(context, HomePage.routeName)));
                           uploading = true;

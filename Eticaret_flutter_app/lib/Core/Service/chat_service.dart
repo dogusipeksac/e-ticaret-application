@@ -3,7 +3,6 @@ import 'package:e_ticaret_flutter_app/Core/Service/message_service.dart';
 import 'package:e_ticaret_flutter_app/Model/chat.dart';
 import 'package:e_ticaret_flutter_app/Model/product.dart';
 import 'package:e_ticaret_flutter_app/Model/user.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -37,14 +36,14 @@ class ChatService {
 
 
     UserModel profileSender = await UserModel().fromUserId(userId);
-    UserModel profileReceiver = await UserModel().fromUserId(product.userId);
+    UserModel profileReceiver = await UserModel().fromUserId(product.userId ?? '');
 
 
     var doc;
     var startConversitns = _firestore.collection("Conversitons");
     doc = await startConversitns.add({
       //
-      'members': FieldValue.arrayUnion([userId, product.userId]),
+      'members': FieldValue.arrayUnion([userId, product.userId ?? '']),
       //
       'title': product.productTitle,
       'productImage': product.productImage1,
@@ -77,6 +76,6 @@ class ChatService {
     print("Query result:" + query.toString());
     print("productId:" + productId);
 
-    return query.length > 0 ? query.first.id : null;
+    return query.isNotEmpty ? query.first.id : '';
   }
 }

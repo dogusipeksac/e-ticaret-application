@@ -6,7 +6,6 @@ import 'package:e_ticaret_flutter_app/Dialog/alert_dialog_cool.dart';
 import 'package:e_ticaret_flutter_app/View/register_page.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class LoginPage extends StatefulWidget {
   static String routeName = '/routeLoginPage';
@@ -23,8 +22,8 @@ class _LoginPageState extends State<LoginPage> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool obsture=true;
   bool validation(){
-    final FormState _form=_formKey.currentState;
-    if(_form.validate()){
+    final FormState? form=_formKey.currentState;
+    if(form != null && form.validate()){
       return true;
     }
     else{
@@ -40,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final emailField =  TextFormField(
       validator: (value) {
-        if (value =="") {
+        if (value == null || value.isEmpty) {
           return "Boş bırakılamaz.";
         } else if (!regExp.hasMatch(value)) {
           return "E mail geçersiz.";
@@ -80,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
 
     final passwordField = TextFormField(
       validator: (value) {
-        if (value == "") {
+        if (value == null || value.isEmpty) {
           return "Boş bırakılmaz.";
         } else if (value.length < 8) {
           return "Şifreniz çok kısa en az 8 karakter olmalı.";
@@ -135,30 +134,25 @@ class _LoginPageState extends State<LoginPage> {
     final loginButton = Material(
       borderRadius: BorderRadius.circular(1.0),
       color: background,
-      // ignore: deprecated_member_use
-      child: FlatButton(
-        shape: RoundedRectangleBorder(side: BorderSide(color: text)),
-        minWidth: 10,
+      child: TextButton(
+        style: TextButton.styleFrom(
+          foregroundColor: text,
+          shape: RoundedRectangleBorder(side: BorderSide(color: text)),
+        ),
         child: Text(
           "GİRİŞ YAP",
           textAlign: TextAlign.center,
           style: TextStyle(color: text, fontWeight: FontWeight.bold),
         ),
         onPressed: () async {
-          setState(() async {
-            if (validation()) {
-              bool result=await _authService
-                  .signIn(_emailController.text,
-                  _passwordController.text);
-              // ignore: unrelated_type_equality_checks
-              if(result){
-                SuccessAlertLogin(context);
-              }
-              else{
-                ErorrAlertLogin(context);
-              }
-            }
-          });
+          if (!validation()) return;
+          final result = await _authService
+              .signIn(_emailController.text, _passwordController.text);
+          if (result) {
+            SuccessAlertLogin(context);
+          } else {
+            ErorrAlertLogin(context);
+          }
           // dynamic result=await _authService.signInAnon();
 
 

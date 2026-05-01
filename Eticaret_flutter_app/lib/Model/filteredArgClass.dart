@@ -6,10 +6,10 @@ class FilteredArgClass {
   static const String SORT_PRIVATE = "Sort";
   static const String SORT_DECRAESE = "SortDecraese";
   static const String SORT_INCREASE = "SortIncrease";
-  String category;
-  double priceMin;
-  double priceMax;
-  String location;
+  String? category;
+  double? priceMin;
+  double? priceMax;
+  String? location;
   bool sort = false;
   bool sortDecraese = false;
   bool sortIncrease = false;
@@ -55,27 +55,25 @@ class FilteredArgClass {
     return this;
   }
 
-  Query buildQuery() {
+  Query? buildQuery() {
     Query query = Product.getPath;
     ///category
-    if (this.category != null)
-      query = query.where("Kategori", isEqualTo: this.category);
+    if (category != null && category!.isNotEmpty) {
+      query = query.where("Kategori", isEqualTo: category);
+    }
 
     ///Location
-    if (this.location != null) query = query.where("Konum",isEqualTo: this.location);
+    if (location != null && location!.isNotEmpty) {
+      query = query.where("Konum",isEqualTo: location);
+    }
 
     ///Price
-    if (this.priceMax != null || this.priceMin != null) {
-      if (this.priceMax == null) {
-        query = query.where("Fiyat", isGreaterThanOrEqualTo: this.priceMin);
-      }
-      else if (this.priceMin == null) {
-        query = query.where("Fiyat", isLessThanOrEqualTo: this.priceMin);
-      }
-      else {
-        query = query
-            .where("Fiyat", isGreaterThanOrEqualTo: this.priceMin , isLessThanOrEqualTo: this.priceMax);
-      }
+    if (priceMax != null || priceMin != null) {
+      query = query.where(
+        "Fiyat",
+        isGreaterThanOrEqualTo: priceMin,
+        isLessThanOrEqualTo: priceMax,
+      );
     }
     ///Sort
     if (this.sort) query = query.orderBy("User id");

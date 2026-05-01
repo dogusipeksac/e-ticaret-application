@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Message {
-  String message;
-  String senderId;
-  String messageId;
+  String? message;
+  String? senderId;
+  String? messageId;
 
 
   Message(
@@ -12,10 +12,11 @@ class Message {
       this.messageId});
 
   factory Message.fromSnapshot(DocumentSnapshot snapshot) {
+    final data = snapshot.data() as Map<String, dynamic>?;
     return Message(
         messageId: snapshot.id,
-        message: snapshot.data()['message'],
-        senderId: snapshot.data()['senderId'],
+        message: data?['message']?.toString(),
+        senderId: data?['senderId']?.toString(),
     );
   }
 }

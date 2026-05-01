@@ -2,25 +2,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Product {
   static final getPath = FirebaseFirestore.instance.collection("Product");
-  String id;
-  String userId;
+  String? id;
+  String? userId;
   //mesela çok iyi durumda
-  String productLocation;
+  String? productLocation;
 
   //mesela 2 el sıfır gibi
-  String productCategory;
+  String? productCategory;
 
   //ürün ile ilgili açıklamalar
-  String productOfDescription;
-  int productPrice;
+  String? productOfDescription;
+  int? productPrice;
 
   //birdenn fazla resim olacak
-  String productImage1;
-  String productImage2;
-  String productImage3;
-  String productImage4;
-  String productImage5;
-  String productTitle;
+  String? productImage1;
+  String? productImage2;
+  String? productImage3;
+  String? productImage4;
+  String? productImage5;
+  String? productTitle;
 
   Product(
       {this.id,
@@ -37,34 +37,31 @@ class Product {
         this.productTitle});
 
   List<String> getImages(){
-    List<String> images = [
+    return <String?>[
       productImage1,
       productImage2,
       productImage3,
       productImage4,
       productImage5,
-    ];
-    for(var i=0; i< images.length; i++ ){
-      if(images.elementAt(i).isEmpty)
-        images.removeRange(i, images.length);
-    }
-    return images;
+    ].whereType<String>().where((e) => e.isNotEmpty).toList();
   }
 
   factory Product.fromSnapshot(DocumentSnapshot snapshot){
+    final data = snapshot.data() as Map<String, dynamic>?;
+    final fiyat = data?['Fiyat'];
     return Product(
       id: snapshot.id,
-      userId: snapshot['User id'],
-      productOfDescription: snapshot['Aciklama'],
-      productTitle: snapshot['Baslik'],
-      productLocation: snapshot['Konum'],
-      productPrice: snapshot['Fiyat'],
-      productImage1: snapshot['Image 1'],
-      productImage2: snapshot['Image 2'],
-      productImage3: snapshot['Image 3'],
-      productImage4: snapshot['Image 4'],
-      productImage5: snapshot['Image 5'],
-      productCategory: snapshot['Kategori'],
+      userId: data?['User id']?.toString(),
+      productOfDescription: data?['Aciklama']?.toString(),
+      productTitle: data?['Baslik']?.toString(),
+      productLocation: data?['Konum']?.toString(),
+      productPrice: fiyat is int ? fiyat : int.tryParse(fiyat?.toString() ?? ''),
+      productImage1: data?['Image 1']?.toString(),
+      productImage2: data?['Image 2']?.toString(),
+      productImage3: data?['Image 3']?.toString(),
+      productImage4: data?['Image 4']?.toString(),
+      productImage5: data?['Image 5']?.toString(),
+      productCategory: data?['Kategori']?.toString(),
     );
   }
 

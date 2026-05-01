@@ -3,29 +3,30 @@ import 'package:e_ticaret_flutter_app/Model/filteredArgClass.dart';
 import 'package:e_ticaret_flutter_app/Model/product.dart';
 
 class FilterService{
-  static Query _query;
-  static FilteredArgClass _filter;
+  static Query? _query;
+  static FilteredArgClass? _filter;
 
-  static FilteredArgClass get getFilter{
+  static FilteredArgClass? get getFilter{
     return _filter;
   }
-  static set setFilter(FilteredArgClass filter){
+  static set setFilter(FilteredArgClass? filter){
     _filter = filter;
   }
-  static Query get getQuery{
+  static Query? get getQuery{
     return _query;
   }
-  static set setQuery(Query query){
+  static set setQuery(Query? query){
     _query = query;
   }
   Stream<List<Product>> filteredProductList(){
-    if(_query != null){
-      return _query
-          .snapshots()
-          .map((qShot) => qShot.docs
-          .map((doc) => Product.fromSnapshot(doc))
-          .toList());
+    final query = _query;
+    if (query == null) {
+      return const Stream.empty();
     }
-    return null;
+    return query
+        .snapshots()
+        .map((qShot) => qShot.docs
+        .map((doc) => Product.fromSnapshot(doc))
+        .toList());
   }
 }

@@ -15,15 +15,15 @@ class FilterPage extends StatefulWidget {
 }
 
 class _FilterPageState extends State<FilterPage> {
-  String valueChoseCategoryOnTheFilter;
-  String valueChoseLocation;
-  String selectedButtonSmartSort="";
+  String? valueChoseCategoryOnTheFilter;
+  String? valueChoseLocation;
+  String? selectedButtonSmartSort;
   final TextEditingController _minimum = TextEditingController();
   final TextEditingController _maximum = TextEditingController();
 
   String image = "";
 
-  List listItemCategory = [
+  List<String> listItemCategory = [
     "Bir kategori seç...",
     "2.El Araç",
     "1.El Araç",
@@ -31,25 +31,19 @@ class _FilterPageState extends State<FilterPage> {
     "Telefon",
     "Giyim"
   ];
-  List listItemCityState = ["Bir şehir seç...","Adana", "Mersin", "İstanbul", "Malatya"];
+  List<String> listItemCityState = ["Bir şehir seç...","Adana", "Mersin", "İstanbul", "Malatya"];
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    FilteredArgClass filter = FilterService.getFilter;
-    if(filter != null){
-      valueChoseCategoryOnTheFilter = filter.category;
-      valueChoseLocation = filter.location;
-      selectedButtonSmartSort = filter.getSort;
-      _maximum.text = filter.priceMax != null
-          ? filter.priceMax.toString()
-          : "";
-      _minimum.text = filter.priceMin != null
-          ? filter.priceMin.toString()
-          : "";
+    final filter = FilterService.getFilter;
+    valueChoseCategoryOnTheFilter = filter?.category;
+    valueChoseLocation = filter?.location;
+    selectedButtonSmartSort = filter?.getSort;
+    _maximum.text = (filter?.priceMax ?? '').toString();
+    _minimum.text = (filter?.priceMin ?? '').toString();
     }
-  }
 
   reset(){
     setState(() {
@@ -67,7 +61,7 @@ class _FilterPageState extends State<FilterPage> {
   Widget build(BuildContext context) {
 
     final minumumPrize = TextField(
-        inputFormatters: [WhitelistingTextInputFormatter.digitsOnly],
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         keyboardType: TextInputType.number,
         controller: _minimum,
         obscureText: false,
@@ -93,7 +87,7 @@ class _FilterPageState extends State<FilterPage> {
         ),
     );
     final maximumPrize = TextField(
-        inputFormatters: [WhitelistingTextInputFormatter.digitsOnly],
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         keyboardType: TextInputType.number,
         controller: _maximum,
         obscureText: false,
@@ -173,7 +167,7 @@ class _FilterPageState extends State<FilterPage> {
                       if(newValue == listItemCategory.elementAt(0))
                         valueChoseCategoryOnTheFilter = null;
                       else
-                        valueChoseCategoryOnTheFilter = newValue;
+                        valueChoseCategoryOnTheFilter = newValue as String?;
                     });
                   },
                   items: listItemCategory.map((valueItem) {
@@ -275,7 +269,7 @@ class _FilterPageState extends State<FilterPage> {
                       if(newValue == listItemCityState.elementAt(0))
                         valueChoseLocation = null;
                       else
-                        valueChoseLocation = newValue;
+                        valueChoseLocation = newValue as String?;
                     });
                   },
                   items: listItemCityState.map((valueItem) {
@@ -362,19 +356,24 @@ class _FilterPageState extends State<FilterPage> {
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: [
-                  FlatButton(
-                    minWidth: 150,
-                    color: themeColor,
-                    shape: new RoundedRectangleBorder(borderRadius: BorderRadius.circular(15),),
+                  SizedBox(
+                    width: 150,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: themeColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
                     onPressed: () {
                       FilterService.setFilter =
                           FilteredArgClass(
-                            category: valueChoseCategoryOnTheFilter == null ? null : valueChoseCategoryOnTheFilter,
-                            location: valueChoseLocation == null ? null : valueChoseLocation,
+                            category: valueChoseCategoryOnTheFilter,
+                            location: valueChoseLocation,
                             priceMax: _maximum.text.isEmpty ? null : double.parse(_maximum.text),
                             priceMin: _minimum.text.isEmpty ? null : double.parse(_minimum.text),
-                          ).setSort(selectedButtonSmartSort);
-                      FilterService.setQuery = FilterService.getFilter.buildQuery();
+                          ).setSort(selectedButtonSmartSort ?? '');
+                      FilterService.setQuery = FilterService.getFilter?.buildQuery();
                       Navigator.pushNamed(context, HomePage.routeName);
                     },
                     child: Text(
@@ -384,11 +383,17 @@ class _FilterPageState extends State<FilterPage> {
                         fontSize: 25,
                       ),
                     ),
+                    ),
                   ),
-                  FilterService.getFilter != null ?FlatButton(
-                    minWidth: 150,
-                    color: themeColor,
-                    shape: new RoundedRectangleBorder(borderRadius: BorderRadius.circular(15),),
+                  SizedBox(
+                    width: 150,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: themeColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
                     onPressed: () {
                       reset();
                     },
@@ -399,8 +404,8 @@ class _FilterPageState extends State<FilterPage> {
                         fontSize: 25,
                       ),
                     ),
-                  )
-                      :SizedBox(),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -412,18 +417,23 @@ class _FilterPageState extends State<FilterPage> {
 }
 
 class ForShortContainer extends StatelessWidget {
-  final Function onPressed;
+  final VoidCallback? onPressed;
   final Widget child;
   final Color color;
 
-  ForShortContainer({this.onPressed, this.child, this.color});
+  const ForShortContainer({
+    super.key,
+    this.onPressed,
+    required this.child,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: this.onPressed,
+      onTap: onPressed,
       child: Container(
-          child: this.child,
+          child: child,
           height: 50,
           width: 150,
           padding: EdgeInsets.only(left: 14, right: 14),

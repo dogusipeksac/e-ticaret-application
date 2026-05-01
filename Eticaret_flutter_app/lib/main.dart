@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
       ],
       child: AuthWidgetBuilder(builder: (context,userSnapshot) {
         return MaterialApp(
-            theme: ThemeData(accentColor: Colors.grey),
+            theme: ThemeData(colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.grey)),
             home: AuthWidget(userSnapshot: userSnapshot,),
             routes: {
               HomePage.routeName: (context) => HomePage(),

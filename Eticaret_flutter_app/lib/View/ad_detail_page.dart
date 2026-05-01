@@ -8,7 +8,6 @@ import 'package:e_ticaret_flutter_app/Model/Wish.dart';
 import 'package:e_ticaret_flutter_app/Model/product.dart';
 import 'package:e_ticaret_flutter_app/View/message_detail.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:e_ticaret_flutter_app/DesignStyle/colors_cons.dart';
 import 'package:provider/provider.dart';
@@ -17,25 +16,25 @@ class AdDetail extends StatefulWidget {
   static String routeName = '/routeAdDetailPage';
   final Product snapshot;
 
-  const AdDetail({@required this.snapshot});
+  const AdDetail({super.key, required this.snapshot});
 
   @override
-  _AdDetailState createState() =>
-      _AdDetailState(product: snapshot, images: snapshot.getImages());
+  _AdDetailState createState() => _AdDetailState();
 }
 
 class _AdDetailState extends State<AdDetail> {
   final WishListService _wishListService = WishListService();
-  PageController pageController;
-  int currentPhoto;
-  _AdDetailState({@required this.product, @required this.images});
-  final Product product;
-  final List<String> images;
+  late final Product product;
+  late final List<String> images;
+  late final PageController pageController;
+  late int currentPhoto;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    product = widget.snapshot;
+    images = widget.snapshot.getImages();
     pageController = PageController(initialPage: 0, viewportFraction: 1);
     currentPhoto = pageController.initialPage;
   }
@@ -94,7 +93,7 @@ class _AdDetailState extends State<AdDetail> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AutoSizeText(
-            product.productTitle,
+            product.productTitle ?? '',
             style: detailTitle,
             maxLines: 2,
           ),
@@ -116,7 +115,7 @@ class _AdDetailState extends State<AdDetail> {
             height: 15,
           ),
           Text(
-            product.productOfDescription,
+            product.productOfDescription ?? '',
             style: detailDescription,
           ),
         ],
@@ -131,14 +130,16 @@ class _AdDetailState extends State<AdDetail> {
           children: [
             Flexible(child: _pageView),
             StreamBuilder<QuerySnapshot>(
-              stream: _wishListService.countOfProductWish(product.id),
+              stream: _wishListService.countOfProductWish(product.id ?? ''),
               builder: (builder, count) {
                 print(count.data);
                 if (count.hasData)
+                  {
+                  final wishCount = count.data?.size ?? 0;
                   return product.userId != user.uid
                       ? _wishListService.isInWishList(
-                          product.id,
-                          count.data.size,
+                          product.id ?? '',
+                          wishCount,
                           whenTrue: IconButton(
                             iconSize: 45,
                             color: themeColor,
@@ -160,10 +161,11 @@ class _AdDetailState extends State<AdDetail> {
                           padding: EdgeInsets.symmetric(horizontal: 20),
                           child: Center(
                               child: Text(
-                            "${count.data.size} kişi istek listesine ekledi",
+                            "$wishCount kişi istek listesine ekledi",
                             style: detailDescription,
                           )),
                         );
+                  }
                 return Center(child: CircularProgressIndicator());
               },
             ),
@@ -214,7 +216,7 @@ class _AdDetailState extends State<AdDetail> {
 class DetailBottomAppBar extends StatelessWidget {
   final Product product;
 
-  DetailBottomAppBar({@required this.product});
+  DetailBottomAppBar({super.key, required this.product});
 
   final ChatService _chatService = ChatService();
   final ProductShareService service = ProductShareService();
@@ -226,9 +228,8 @@ class DetailBottomAppBar extends StatelessWidget {
     final Size size = MediaQuery.of(context).size;
     final Size buttonSize = Size(size.width / 3, size.height * 0.05);
     final buttonStyle = ElevatedButton.styleFrom(
-        minimumSize: buttonSize,
+        minimumSize: buttonSize, backgroundColor: themeColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        primary: themeColor,
         elevation: 10);
     return Consumer<User>(
       builder: (context, user, child) => BottomAppBar(
@@ -238,7 +239,7 @@ class DetailBottomAppBar extends StatelessWidget {
               Spacer(),
               FutureBuilder<String>(
                 future:
-                    _chatService.productConversitonsExist(product.id, user.uid),
+                    _chatService.productConversitonsExist(product.id ?? '', user.uid),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Text("Birşeyler yanlış gitti");
@@ -306,7 +307,7 @@ class DetailBottomAppBar extends StatelessWidget {
                     child: ElevatedButton(
                         onPressed: () async {
                           await service
-                              .remove(product.id)
+                              .remove(product.id ?? '')
                               .whenComplete(() => Navigator.pop(context));
                         },
                         child: Padding(
@@ -343,8 +344,7 @@ class DetailBottomAppBar extends StatelessWidget {
         ///information dialog button style
         final buttonStyle = ElevatedButton.styleFrom(
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            primary: themeColor,
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)), backgroundColor: themeColor,
             elevation: 10);
 
         ///information dialog button template
@@ -408,7 +408,7 @@ class DetailBottomAppBar extends StatelessWidget {
                       controller: _textEditingController,
                       style: TextStyle(color: themeColor),
                       validator: (value) {
-                        return value.isNotEmpty ? null : "Invalid Field";
+                        return (value ?? '').isNotEmpty ? null : "Invalid Field";
                       },
                       decoration: InputDecoration(
                         labelText: "Keni Mesajını Yaz",
@@ -456,7 +456,7 @@ class DetailBottomAppBar extends StatelessWidget {
 class SelectedPhoto extends StatelessWidget {
   final int numberOfDots;
   final int photoIndex;
-  const SelectedPhoto({this.numberOfDots, this.photoIndex});
+  const SelectedPhoto({super.key, required this.numberOfDots, required this.photoIndex});
 
   Widget _inactivePhoto() {
     return new Container(

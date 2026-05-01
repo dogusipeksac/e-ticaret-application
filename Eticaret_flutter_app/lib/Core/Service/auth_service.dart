@@ -12,30 +12,28 @@ class AuthService {
 
 
   //kayıt ol
-  Future<User>createPerson(
+  Future<User?> createPerson(
       String email,
       String name,
       String password,
       ) async {
     var user = await _auth.createUserWithEmailAndPassword(
         email: email, password: password);
-    await _firebaseFirestore.collection("User").doc(user.user.uid).set({
+    final createdUser = user.user;
+    if (createdUser == null) return null;
+    await _firebaseFirestore.collection("User").doc(createdUser.uid).set({
       'name': name,
       'email': email,
       'password': password,
       'location': location,
       'image': imageAdress,
     });
-    return user.user;
+    return createdUser;
 
   }
 
 
-  Stream<User> get authStateChanges => _auth.authStateChanges()
-      .map((event) {
-        var val = event == null? null : event;
-        return val;
-      });
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   Future<bool> signIn(String email, String password) async {
     try{

@@ -3,7 +3,7 @@ import 'package:e_ticaret_flutter_app/Core/Service/product_share_service.dart';
 import 'package:e_ticaret_flutter_app/DesignStyle/colors_cons.dart';
 import 'package:flutter/material.dart';
 class CategoriesScroller extends StatelessWidget {
-  const CategoriesScroller();
+  const CategoriesScroller({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +39,10 @@ class CategoriesScroller extends StatelessWidget {
 class CategoryCard extends StatelessWidget {
   final String CategoryName;
   final String CountOfProduct;
-  CategoryCard({
-    @required this.CategoryName,
-    @required this.CountOfProduct
+  const CategoryCard({
+    super.key,
+    required this.CategoryName,
+    required this.CountOfProduct,
   });
   @override
   Widget build(BuildContext context) {

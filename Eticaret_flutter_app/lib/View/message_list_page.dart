@@ -5,7 +5,6 @@ import 'package:e_ticaret_flutter_app/View/message_detail.dart';
 import 'package:e_ticaret_flutter_app/ViewModal/chats_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 
@@ -15,11 +14,10 @@ import '../Map/main_drawer.dart';
 class MessageList extends StatefulWidget {
 
   static String routeName = '/routeMessageList';
-  final Product product;
-  final String conversitonsId;
+  final Product? product;
+  final String? conversitonsId;
 
-  const MessageList({Key key,this.product,this.conversitonsId})
-      : super(key: key);
+  const MessageList({super.key, this.product, this.conversitonsId});
 
   @override
   _MessageListState createState() => _MessageListState();
@@ -32,7 +30,7 @@ class _MessageListState extends State<MessageList> {
   @override
   Widget build(BuildContext context) {
     var model=GetIt.instance<ChatsModel>();
-    return Consumer<User>(
+    return Consumer<User?>(
       builder: (context, user, child) => Scaffold(
         backgroundColor: background,
         appBar: AppBar(
@@ -44,7 +42,7 @@ class _MessageListState extends State<MessageList> {
           //memory optimizasyonu
           create: (BuildContext context)=>model,
           child: StreamBuilder<List<Chat>>(
-            stream:model.conservation(user.uid),
+            stream: model.conservation(user?.uid ?? ''),
             builder:(BuildContext context,AsyncSnapshot<List<Chat>> snapshot){
               if(snapshot.hasError){
                 return Text("Eror: ${snapshot.error}");
@@ -52,9 +50,13 @@ class _MessageListState extends State<MessageList> {
               if(snapshot.connectionState==ConnectionState.waiting){
                 return Text('Loading..');
               }
+              if (user == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final chats = snapshot.data ?? <Chat>[];
               return ListView(
-                children: snapshot.data.
-                map((doc)=> Container(
+                children: chats
+                .map((doc)=> Container(
                   width: MediaQuery.of(context).size.width,
                   padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
                   child: GestureDetector(
@@ -63,7 +65,9 @@ class _MessageListState extends State<MessageList> {
                           MaterialPageRoute(builder:
                           ((context)=>
                               MessageDetailPage(
-                                product: widget.product,conservationId: doc.id,))));
+                                product: widget.product,
+                                conservationId: doc.id,
+                              ))));
                     },
                     child: Card(
                       color: background,
@@ -92,8 +96,9 @@ class _MessageListState extends State<MessageList> {
                                     child: CircleAvatar(
                                       backgroundImage: NetworkImage(
                                           doc.productUserId != user.uid
-                                              ? doc.receiverImage :
-                                          doc.senderImage,),
+                                              ? (doc.receiverImage ?? '')
+                                              : (doc.senderImage ?? ''),
+                                      ),
                                     ),
                                     width: 20,
                                     height: 20,
@@ -103,7 +108,7 @@ class _MessageListState extends State<MessageList> {
                                   backgroundColor: filterBackground,
                                   foregroundColor: filterBackground,
                                   backgroundImage: NetworkImage(
-                                      doc.productImage),
+                                      doc.productImage ?? ''),
                                 ),
                               ),
                             ),
@@ -116,18 +121,20 @@ class _MessageListState extends State<MessageList> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   Text(
-                                    doc.title,
+                                    doc.title ?? '',
                                     style: TextStyle(color: themeColor, fontSize: 15),
                                   ),
                                   Text(
-                                    doc.productUserId != user.uid ? doc.receiverName : doc.senderName,
+                                    doc.productUserId != user.uid
+                                        ? (doc.receiverName ?? '')
+                                        : (doc.senderName ?? ''),
                                     style: TextStyle(color: Colors.white, fontSize: 15),
                                   ),
                                   SizedBox(
                                     height: 2,
                                   ),
                                   Text(
-                                    doc.displayMessage,
+                                    doc.displayMessage ?? '',
                                     style: TextStyle(color: Colors.white, fontSize: 15),
                                   ),
 

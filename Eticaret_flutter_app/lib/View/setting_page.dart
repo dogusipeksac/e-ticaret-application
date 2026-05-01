@@ -20,11 +20,11 @@ class SettingPage extends StatefulWidget {
 
 class _SettingPageState extends State<SettingPage> {
   bool obsture=true;
-  File _imageFile;
+  File? _imageFile;
   final picker=ImagePicker();
   final auth = FirebaseAuth.instance;
   UserController userController = UserController();
-  String downloadUrl;
+  String? downloadUrl;
   bool uploading = false;
   final TextEditingController _isimControllerr = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -32,10 +32,12 @@ class _SettingPageState extends State<SettingPage> {
 
 
    Future baglantiAl() async{
+    final uid = auth.currentUser?.uid;
+    if (uid == null) return;
     var baglanti =await FirebaseStorage
         .instance.ref()
         .child("Profil Resimleri")
-        .child(auth.currentUser.uid)
+        .child(uid)
         .child("profilResmi.jpg").getDownloadURL();
     setState((){
       downloadUrl=  baglanti;
@@ -47,14 +49,17 @@ class _SettingPageState extends State<SettingPage> {
   }
 
   Future uploadFile()async{
+    final uid = auth.currentUser?.uid;
+    final file = _imageFile;
+    if (uid == null || file == null) return;
 
     var referenceYol=FirebaseStorage
         .instance.ref()
         .child("Profil Resimleri")
-        .child(auth.currentUser.uid)
+        .child(uid)
         .child("profilResmi.jpg");
 
-    var yuklemeGorevi=referenceYol.putFile(_imageFile);
+    var yuklemeGorevi=referenceYol.putFile(file);
 
     await (await yuklemeGorevi.whenComplete(() async{
 
@@ -77,12 +82,12 @@ class _SettingPageState extends State<SettingPage> {
 
 
   Future takePhoto(ImageSource source) async {
-    final pickedFile = await ImagePicker().getImage(source: source);
-    setState((){
+    final pickedFile = await ImagePicker().pickImage(source: source);
+    if (pickedFile == null) return;
+    setState(() {
       _imageFile = File(pickedFile.path);
-      uploadFile();
-
     });
+    await uploadFile();
   }
 
 
@@ -107,9 +112,10 @@ class _SettingPageState extends State<SettingPage> {
                   child: CircularProgressIndicator(),
                 );
               }
-              _isimControllerr.text= snapshot.data['name'];
-              _passwordController.text=snapshot.data['password'];
-              _locationController.text=snapshot.data['location'];
+              final data = snapshot.data?.data() as Map<String, dynamic>?;
+              _isimControllerr.text= (data?['name'] ?? '').toString();
+              _passwordController.text=(data?['password'] ?? '').toString();
+              _locationController.text=(data?['location'] ?? '').toString();
 
               return SingleChildScrollView(
                 padding: EdgeInsets.all(15),
@@ -121,9 +127,7 @@ class _SettingPageState extends State<SettingPage> {
                       children: <Widget>[
                         CircleAvatar(
                           radius: 80,
-                          backgroundImage: downloadUrl == null ?
-                          AssetImage("images/profile.png",)
-                          :NetworkImage(downloadUrl)
+                          backgroundImage: NetworkImage(downloadUrl ?? '')
                         ),
                         Positioned(
                           bottom: 20,
@@ -148,8 +152,7 @@ class _SettingPageState extends State<SettingPage> {
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: <Widget>[
-                                          // ignore: deprecated_member_use
-                                          FlatButton.icon(
+                                              TextButton.icon(
                                             icon: Icon(Icons.camera),
                                             onPressed: () {
                                               setState(() {
@@ -159,8 +162,7 @@ class _SettingPageState extends State<SettingPage> {
                                             },
                                             label: Text("Kamera"),
                                           ),
-                                          // ignore: deprecated_member_use
-                                          FlatButton.icon(
+                                              TextButton.icon(
                                             icon: Icon(Icons.image),
                                             onPressed: () {
                                               setState(() {
@@ -195,7 +197,7 @@ class _SettingPageState extends State<SettingPage> {
                       style: TextStyle(color: Colors.white),
                       cursorColor: Colors.white,
                       decoration: Decoration(
-                          Icons.person_rounded,'İsminizi giriniz',null),
+                          Icons.person_rounded,'İsminizi giriniz',Icons.person),
                     ),
                     SizedBox(height: 20.0),
                     settingTitlePackage('Şifre'),
@@ -215,17 +217,18 @@ class _SettingPageState extends State<SettingPage> {
                         style: TextStyle(color: Colors.white),
                         cursorColor: Colors.white,
                         decoration: Decoration(Icons.location_on_rounded,
-                            'Konum:',null)),
+                            'Konum:',Icons.location_on_rounded)),
                     SizedBox(height: 30.0),
                     Center(
                         child: Material(
                       borderRadius: BorderRadius.circular(1.0),
                       color: background,
-                      // ignore: deprecated_member_use
-                      child: FlatButton(
-                        minWidth: 60,
-                        shape: RoundedRectangleBorder(
-                            side: BorderSide(color: text)),
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              side: BorderSide(color: text)),
+                        ),
                         onPressed: (){
                          setState(() {
                            userController.updateUser(
@@ -233,7 +236,7 @@ class _SettingPageState extends State<SettingPage> {
                                _locationController.text,
                                _isimControllerr.text,
                                _passwordController.text,
-                               downloadUrl).whenComplete(() =>Navigator.pushNamed(context, SettingPage.routeName));
+                               downloadUrl ?? '').whenComplete(() =>Navigator.pushNamed(context, SettingPage.routeName));
                            uploading = true;
                          });
                         },
@@ -253,7 +256,7 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 
-  InputDecoration Decoration(IconData icon, String labelText,IconData suffexicon) {
+  InputDecoration Decoration(IconData icon, String labelText,IconData? suffexicon) {
     return InputDecoration(
 
       prefixIcon: Icon(
@@ -265,9 +268,13 @@ class _SettingPageState extends State<SettingPage> {
         onTap: (){
             obsture=true;
         },
-        child: Icon( suffexicon,
-          color: Colors.white,
-          size: 20,),
+        child: suffexicon == null
+            ? null
+            : Icon(
+                suffexicon,
+                color: Colors.white,
+                size: 20,
+              ),
       ),
       labelText: labelText,
       labelStyle: TextStyle(color: Colors.white),

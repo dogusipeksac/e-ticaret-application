@@ -12,8 +12,6 @@ import 'package:e_ticaret_flutter_app/View/my_product_page.dart';
 import 'package:e_ticaret_flutter_app/View/notifications_page.dart';
 import 'package:e_ticaret_flutter_app/View/setting_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 class MainDrawer extends StatelessWidget {
@@ -22,151 +20,141 @@ class MainDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    UserModel user;
-    List<NotificationModel> notifyList =
-        Provider.of<List<NotificationModel>>(context);
-    if (Provider.of<DocumentSnapshot>(context) != null)
-      user = UserModel.fromSnapshot(Provider.of<DocumentSnapshot>(context));
-    List<Product> productList = Provider.of<List<Product>>(context);
+    final notifyList = Provider.of<List<NotificationModel>>(context) ?? <NotificationModel>[];
+    final docSnap = Provider.of<DocumentSnapshot?>(context);
+    final user = docSnap == null ? UserModel() : UserModel.fromSnapshot(docSnap);
+    final productList = Provider.of<List<Product>>(context) ?? <Product>[];
 
-    if (user == null || notifyList == null || productList == null) {
-      return Center(
-        child: CircularProgressIndicator(),
-      );
-    } else {
-      return Drawer(
-        elevation: 3,
-        child: SafeArea(
-          child: Column(
-            children: <Widget>[
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(20),
-                color: themeColor,
-                child: Center(
-                  child: Row(
-                    children: <Widget>[
-                      Material(
-                        borderRadius: BorderRadius.all(Radius.circular(180)),
-                        color: text,
-                        elevation: 20,
-                        child: CircleAvatar(
-                          radius: 40,
-                          backgroundColor: Colors.transparent,
-                          child: ClipOval(
-                            child: Image(
-                              image: user.userImageLink == ""
-                                  ? AssetImage("images/profile.png")
-                                  : NetworkImage(user.userImageLink),
-                            ),
+    return Drawer(
+      elevation: 3,
+      child: SafeArea(
+        child: Column(
+          children: <Widget>[
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(20),
+              color: themeColor,
+              child: Center(
+                child: Row(
+                  children: <Widget>[
+                    Material(
+                      borderRadius: BorderRadius.all(Radius.circular(180)),
+                      color: text,
+                      elevation: 20,
+                      child: CircleAvatar(
+                        radius: 40,
+                        backgroundColor: Colors.transparent,
+                        child: ClipOval(
+                          child: Image(
+                            image: (user.userImageLink == null || user.userImageLink!.isEmpty)
+                                ? const AssetImage("images/profile.png")
+                                : NetworkImage(user.userImageLink!) as ImageProvider,
                           ),
                         ),
                       ),
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                user.name,
+                    ),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              user.name ?? '',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: text,
+                              ),
+                            ),
+                            IconTheme(
+                              data: IconThemeData(
+                                color: Colors.deepOrange,
+                                size: 20,
+                              ),
+                              child: StarDisplay(value: 3),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                '${productList.length} Ürün',
                                 style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                   color: text,
                                 ),
                               ),
-                              IconTheme(
-                                data: IconThemeData(
-                                  color: Colors.deepOrange,
-                                  size: 20,
-                                ),
-                                child: StarDisplay(value: 3),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Text(
-                                  '${productList.length} Ürün',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: text,
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
+                            )
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              Expanded(
-                child: Container(
-                  color: background,
-                  child: Column(
-                    children: <Widget>[
-                      /** Main Page **/
-                      PageTile(
-                        name: 'Anasayfa',
-                        textColor: text,
-                        routeName: HomePage.routeName,
-                        notificationNumber: 0,
-                      ),
-                      /** Notification **/
-                      PageTile(
-                        name: 'Bildirimler',
-                        textColor: text,
-                        routeName: Notifications.routeName,
-                        notificationNumber: numberOfNewNotification(notifyList),
-                      ),
-                      /** Messages **/
-                      PageTile(
-                        name: 'Mesajlar',
-                        textColor: text,
-                        routeName: MessageList.routeName,
-                        notificationNumber: 0,
-                      ),
-                      /** My Products **/
-                      PageTile(
-                        name: 'Ürünlerim',
-                        textColor: text,
-                        routeName: MyProduct.routeName,
-                        notificationNumber: 0,
-                      ),
-                      /** Settings **/
-                      PageTile(
-                        name: 'Ayarlar',
-                        textColor: text,
-                        routeName: SettingPage.routeName,
-                        notificationNumber: 0,
-                      ),
-                      /** Log out **/
-                      PageTile(
-                        name: 'Çıkış',
-                        textColor: Colors.red,
-                        routeName: "",
-                        notificationNumber: 0,
-                      ),
-                    ],
-                  ),
+            ),
+            Expanded(
+              child: Container(
+                color: background,
+                child: Column(
+                  children: <Widget>[
+                    /** Main Page **/
+                    PageTile(
+                      name: 'Anasayfa',
+                      textColor: text,
+                      routeName: HomePage.routeName,
+                      notificationNumber: 0,
+                    ),
+                    /** Notification **/
+                    PageTile(
+                      name: 'Bildirimler',
+                      textColor: text,
+                      routeName: Notifications.routeName,
+                      notificationNumber: numberOfNewNotification(notifyList),
+                    ),
+                    /** Messages **/
+                    PageTile(
+                      name: 'Mesajlar',
+                      textColor: text,
+                      routeName: MessageList.routeName,
+                      notificationNumber: 0,
+                    ),
+                    /** My Products **/
+                    PageTile(
+                      name: 'Ürünlerim',
+                      textColor: text,
+                      routeName: MyProduct.routeName,
+                      notificationNumber: 0,
+                    ),
+                    /** Settings **/
+                    PageTile(
+                      name: 'Ayarlar',
+                      textColor: text,
+                      routeName: SettingPage.routeName,
+                      notificationNumber: 0,
+                    ),
+                    /** Log out **/
+                    PageTile(
+                      name: 'Çıkış',
+                      textColor: Colors.red,
+                      routeName: "",
+                      notificationNumber: 0,
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
     }
-  }
 
   int numberOfNewNotification(List<NotificationModel> list) {
     int count = 0;
-    if (list != null) {
-      list.forEach((element) {
-        if (!element.isShowed) count++;
-      });
-    }
-    return count;
+    list.forEach((element) {
+      if (!(element.isShowed ?? false)) count++;
+    });
+      return count;
   }
 }
 
@@ -175,11 +163,12 @@ class PageTile extends StatelessWidget {
   final Color textColor;
   final String routeName;
   final int notificationNumber;
-  PageTile({
-    @required this.name,
-    @required this.textColor,
-    @required this.routeName,
-    @required this.notificationNumber,
+  const PageTile({
+    super.key,
+    required this.name,
+    required this.textColor,
+    required this.routeName,
+    required this.notificationNumber,
   });
 
   Future<void> _signOut(BuildContext context) async {
@@ -213,7 +202,7 @@ class PageTile extends StatelessWidget {
                   : Navigator.pushNamed(context, routeName),
             ),
           ),
-          ((notificationNumber != null && notificationNumber != 0) &&
+          ((notificationNumber != 0) &&
                   routeName == Notifications.routeName)
               ? Align(
                   alignment: Alignment.centerRight,
@@ -248,9 +237,7 @@ class PageTile extends StatelessWidget {
 //class for rating with star
 class StarDisplay extends StatelessWidget {
   final int value;
-  const StarDisplay({Key key, this.value = 0})
-      : assert(value != null),
-        super(key: key);
+  const StarDisplay({super.key, this.value = 0});
   @override
   Widget build(BuildContext context) {
     return Row(

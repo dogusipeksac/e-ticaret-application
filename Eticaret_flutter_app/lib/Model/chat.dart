@@ -1,18 +1,17 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Chat {
-  String id;
+  String? id;
 
-  String productId;
-  String productImage;
-  int productPrize;
-  String title;
-  String productUserId;
-  String senderImage;
-  String senderName;
-  String receiverImage;
-  String receiverName;
-  String displayMessage;
+  String? productId;
+  String? productImage;
+  int? productPrize;
+  String? title;
+  String? productUserId;
+  String? senderImage;
+  String? senderName;
+  String? receiverImage;
+  String? receiverName;
+  String? displayMessage;
 
   Chat({
     this.id,

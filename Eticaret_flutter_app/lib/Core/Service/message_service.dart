@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_ticaret_flutter_app/Model/message.dart';
-import 'package:e_ticaret_flutter_app/Model/product.dart';
 
 
 class MessageService{

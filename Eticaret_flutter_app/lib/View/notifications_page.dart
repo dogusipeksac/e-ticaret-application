@@ -16,7 +16,7 @@ class Notifications extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<NotificationModel> notificationList =
-        Provider.of<List<NotificationModel>>(context);
+        Provider.of<List<NotificationModel>>(context) ?? <NotificationModel>[];
 
     return Scaffold(
       backgroundColor: background,
@@ -25,18 +25,17 @@ class Notifications extends StatelessWidget {
         backgroundColor: background,
       ),
       drawer: MainDrawer(),
-      body: notificationList != null
-          ? ListView.builder(
+      body: ListView.builder(
               itemCount: notificationList.length,
               shrinkWrap: true,
               itemBuilder: (BuildContext context, int index) => FutureBuilder<UserModel>(
-                future: UserModel().fromUserId(notificationList[index].willingId),
+                future: UserModel().fromUserId(notificationList[index].willingId ?? ''),
                 builder: (context, user) {
                   if(user.hasError){
                     return Text("Birseyler yanlis gitti");
                   }
                   if(user.hasData){
-                    final isShowed = notificationList[index].isShowed;
+                    final isShowed = notificationList[index].isShowed ?? false;
                     changeShowState(isShowed, notificationList[index]);
                     return GestureDetector(
                       onTap: () => toProductDetailPage(notificationList[index], context),
@@ -52,7 +51,7 @@ class Notifications extends StatelessWidget {
                           ),
                           child: Container(
                             decoration: BoxDecoration(
-                                color: isShowed?filterBackground:themeColor,
+                                color: isShowed ? filterBackground : themeColor,
                                 borderRadius: BorderRadius.all(Radius.circular(10.0))),
                             width: MediaQuery.of(context).size.width,
                             padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
@@ -69,7 +68,7 @@ class Notifications extends StatelessWidget {
                                     child: CircleAvatar(
                                       backgroundColor: filterBackground,
                                       foregroundColor: filterBackground,
-                                      backgroundImage: NetworkImage(user.data.userImageLink),
+                                      backgroundImage: NetworkImage(user.data?.userImageLink ?? ''),
                                     ),
                                   ),
                                 ),
@@ -79,7 +78,7 @@ class Notifications extends StatelessWidget {
                                     margin: EdgeInsets.all(5),
                                     alignment: Alignment.centerLeft,
                                     child: Text(
-                                      user.data.name + " ilanını istek listesine ekledi",
+                                      (user.data?.name ?? '') + " ilanını istek listesine ekledi",
                                       style:
                                       TextStyle(color: Colors.white, fontSize: 15),
                                     ),
@@ -97,15 +96,12 @@ class Notifications extends StatelessWidget {
                   );
                 }
               ),
-            )
-          : Center(
-              child: CircularProgressIndicator(),
             ),
     );
   }
   
   toProductDetailPage(NotificationModel model,BuildContext context) {
-    Product().fromProductId(model.productId).then((product){
+    Product().fromProductId(model.productId ?? '').then((product){
       Navigator.push(context, MaterialPageRoute(
         builder: (context) => AdDetail(snapshot: product,),
       ));

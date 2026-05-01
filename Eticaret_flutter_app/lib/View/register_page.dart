@@ -1,9 +1,7 @@
-import 'package:e_ticaret_flutter_app/Core/Controller/user_controller.dart';
 import 'package:e_ticaret_flutter_app/Core/Service/auth_service.dart';
 import 'package:e_ticaret_flutter_app/DesignStyle/colors_cons.dart';
 import 'package:e_ticaret_flutter_app/Dialog/alert_dialog_cool.dart';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'login_page.dart';
@@ -26,8 +24,8 @@ class _RegisterPageState extends State<RegisterPage> {
   bool obsture = true;
 
   bool validation(){
-    final FormState _form=_formKey.currentState;
-    if(_form.validate()){
+    final FormState? form=_formKey.currentState;
+    if(form != null && form.validate()){
       return true;
     }
     else{
@@ -45,10 +43,11 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     final nameSurname = TextFormField(
       validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "Boş bırakılmaz.";
+        }
         if (value.length < 6) {
           return "İsminiz çok kısa";
-        } else if (value =="") {
-          return "Boş bırakılmaz.";
         }
         return null;
       },
@@ -81,7 +80,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
     final email = TextFormField(
       validator: (value) {
-        if (value =="") {
+        if (value == null || value.isEmpty) {
           return "Boş bırakılamaz.";
         } else if (!regExp.hasMatch(value)) {
           return "E mail geçersiz.";
@@ -118,7 +117,7 @@ class _RegisterPageState extends State<RegisterPage> {
     ;
     final password = TextFormField(
       validator: (value) {
-        if (value == "") {
+        if (value == null || value.isEmpty) {
           return "Boş bırakılmaz.";
         } else if (value.length < 8) {
           return "Şifreniz çok kısa en az 8 karakter olmalı.";
@@ -171,24 +170,24 @@ class _RegisterPageState extends State<RegisterPage> {
     final registerButton = Material(
       borderRadius: BorderRadius.circular(1.0),
       color: background,
-      // ignore: deprecated_member_use
-      child: FlatButton(
-
-          shape: RoundedRectangleBorder(side: BorderSide(color: text)),
-          minWidth: 50,
+      child: TextButton(
+          style: TextButton.styleFrom(
+            foregroundColor: text,
+            shape: RoundedRectangleBorder(side: BorderSide(color: text)),
+          ),
           child: Text(
             "HESAP OLUŞTUR",
             textAlign: TextAlign.center,
             style: TextStyle(color: text, fontWeight: FontWeight.bold),
           ),
           onPressed: () async {
-            setState(() {
-              if(validation()){
-                SuccessAlertRegister(context);
-                _userController.createPerson(_emailController.text,
-                    _nameSurnameController.text, _passwordController.text);
-              }
-            });
+            if(!validation()) return;
+            await _userController.createPerson(
+              _emailController.text,
+              _nameSurnameController.text,
+              _passwordController.text,
+            );
+            SuccessAlertRegister(context);
           }),
     );
     final goLoginButton = goLoginTextButton(context);

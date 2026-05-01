@@ -4,7 +4,6 @@ import 'package:e_ticaret_flutter_app/Core/Service/product_share_service.dart';
 import 'package:e_ticaret_flutter_app/DesignStyle/colors_cons.dart';
 import 'package:e_ticaret_flutter_app/Model/product.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import '../Map/main_drawer.dart';
 import 'ad_detail_page.dart';
@@ -45,9 +44,10 @@ class _MyProductState extends State<MyProduct> {
               child: CircularProgressIndicator(),
             );
           }
+          final docs = snapshot.data?.docs ?? [];
           return  ListView.builder(
             padding: EdgeInsets.only(bottom:40),
-            itemCount: snapshot.data.docs.length,
+            itemCount: docs.length,
             shrinkWrap: true,
             itemBuilder: (BuildContext context, int index) => Container(
               height: 100,
@@ -55,7 +55,7 @@ class _MyProductState extends State<MyProduct> {
               padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
               child: GestureDetector(
                 onTap: (){
-                  toProductDetailPage(snapshot.data.docs[index].id,context);
+                  toProductDetailPage(docs[index].id,context);
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -70,9 +70,9 @@ class _MyProductState extends State<MyProduct> {
                       Expanded(flex: 1,
                         child: Container(
                           color: filterBackground,
-                          child: snapshot.data.docs[index]["Image 1"] == "" ?
+                          child: (docs[index].data() as Map<String, dynamic>?)?["Image 1"] == "" ?
                           Image.asset("images/Opel_KARL.jpg") :
-                          Image.network(snapshot.data.docs[index]["Image 1"]),
+                          Image.network(((docs[index].data() as Map<String, dynamic>?)?["Image 1"] ?? '').toString()),
                         ),
                       ),
                       SizedBox(
@@ -86,7 +86,7 @@ class _MyProductState extends State<MyProduct> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               Text(
-                                snapshot.data.docs[index]["Fiyat"].toString()  + "  Türk Lirası",
+                                ((((docs[index].data() as Map<String, dynamic>?)?["Fiyat"]) ?? '').toString())  + "  Türk Lirası",
                                 style: TextStyle(color: themeColor, fontSize: 15),
                               ),
                               SizedBox(
@@ -94,7 +94,7 @@ class _MyProductState extends State<MyProduct> {
                               ),
                               Expanded(
                                 child: Text(
-                                  snapshot.data.docs[index]["Aciklama"],
+                                  (((docs[index].data() as Map<String, dynamic>?)?["Aciklama"]) ?? '').toString(),
                                   style: TextStyle(color: Colors.white, fontSize: 15),
                                 ),
                               ),

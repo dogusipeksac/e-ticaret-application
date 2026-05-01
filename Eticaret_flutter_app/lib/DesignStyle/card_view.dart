@@ -1,24 +1,20 @@
-import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:e_ticaret_flutter_app/DesignStyle/colors_cons.dart';
 import 'package:e_ticaret_flutter_app/Model/product.dart';
 import 'package:e_ticaret_flutter_app/View/ad_detail_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class CardView extends StatefulWidget {
-  const CardView({Key key, @required this.product}):super(key: key);
+  const CardView({super.key, required this.product});
   final Product product;
   @override
-  _CardViewState createState() => _CardViewState(product: product);
+  _CardViewState createState() => _CardViewState();
 }
 
 class _CardViewState extends State<CardView> {
   var _displayFront ;
   var _flipXAxis ;
-  final Product product;
-  _CardViewState({@required this.product}):super();
   void _onTileClicked(Product snapshot,var context){
     Navigator.push(context, MaterialPageRoute(
       builder: (context) => AdDetail(snapshot: snapshot,),
@@ -38,17 +34,17 @@ class _CardViewState extends State<CardView> {
       constraints: BoxConstraints.tight(Size.square(200.0)),
       child: GestureDetector(
         onDoubleTap: () => setState(() =>_displayFront = !_displayFront),
-        onTap: () => _onTileClicked(product, context),
-        child: __buildLayout(product.productImage1),
+        onTap: () => _onTileClicked(widget.product, context),
+        child: __buildLayout(widget.product.productImage1 ?? ''),
       ),
     );
   }
 
 
-  Widget __buildLayout(String imageUrl,{Widget widget}) {
-    var title = product.productTitle;
-    var category = product.productCategory;
-    var price = "${product.productPrice} TL";
+  Widget __buildLayout(String imageUrl,{Widget? widget}) {
+    var title = this.widget.product.productTitle ?? '';
+    var category = this.widget.product.productCategory ?? '';
+    var price = "${this.widget.product.productPrice ?? ''} TL";
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children:[

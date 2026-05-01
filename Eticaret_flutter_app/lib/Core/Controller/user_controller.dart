@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:e_ticaret_flutter_app/Model/user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class UserController{
@@ -23,7 +22,9 @@ class UserController{
   }
 
   getPath(){
-    return _firebaseFirestore.collection('User').doc('${auth.currentUser.uid}');
+    final uid = auth.currentUser?.uid;
+    if (uid == null) return _firebaseFirestore.collection('User').doc('unknown');
+    return _firebaseFirestore.collection('User').doc(uid);
   }
 
 }

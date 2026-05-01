@@ -22,7 +22,7 @@ class ProductShareService {
       String productOfDescription) async {
     var ref = _firestore.collection("Product");
 
-    var documentRef = await ref.add({
+    await ref.add({
       'User id': userId,
       'Image 1': pickedFile1,
       'Image 2': pickedFile2,
@@ -35,25 +35,12 @@ class ProductShareService {
       'Konum': productLocation,
       'Aciklama': productOfDescription,
     });
-    return Product(
-        id: documentRef.id,
-        userId: userId,
-        productImage1: pickedFile1,
-        productImage2: pickedFile2,
-        productImage3: pickedFile3,
-        productImage4: pickedFile4,
-        productImage5: pickedFile5,
-        productCategory: productCategory,
-        productOfDescription: productOfDescription,
-        productPrice: productPrize,
-        productLocation: productLocation,
-        productTitle: productTitle);
   }
 
 
   Query getUserProduct(){
     return FirebaseFirestore.instance.collection("Product").
-    where("User id",isEqualTo: FirebaseAuth.instance.currentUser.uid);
+    where("User id",isEqualTo: FirebaseAuth.instance.currentUser?.uid ?? '');
   }
 
   Future<int> getCount(String field) async{

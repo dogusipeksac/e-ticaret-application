@@ -11,8 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AuthWidgetBuilder extends StatelessWidget {
-  AuthWidgetBuilder({Key key, @required this.builder}) : super(key: key);
-  final Widget Function(BuildContext, AsyncSnapshot<User>) builder;
+  AuthWidgetBuilder({super.key, required this.builder});
+  final Widget Function(BuildContext, AsyncSnapshot<User?>) builder;
   final NotificationService notificationService = NotificationService();
   final ProductShareService productShareService = ProductShareService();
   final UserController userController = UserController();
@@ -22,24 +22,29 @@ class AuthWidgetBuilder extends StatelessWidget {
     print('AuthWidgetBuilder rebuild');
     final authService =
     Provider.of<AuthService>(context, listen: false);
-    return StreamBuilder<User>(
+    return StreamBuilder<User?>(
       stream: authService.authStateChanges,
       builder: (context, snapshot) {
         print('StreamBuilder: ${snapshot.connectionState} , ${snapshot.data}');
-        final User user = snapshot.data;
-        if (user != null) {
-          return MultiProvider(
-            providers: [
-              StreamProvider<List<NotificationModel>>
-                  .value(value: notificationService.getUserNotificationList(),initialData: null,),
-              StreamProvider<List<Product>>.value(value: productShareService.getUserProducts(), initialData: null),
-              StreamProvider<DocumentSnapshot>.value(value: userController.getPath().snapshots(), initialData: null),
-              Provider<User>.value(value: user),
-            ],
-            child: builder(context, snapshot),
-          );
-        }
-        return builder(context, snapshot);
+        final User? user = snapshot.data;
+        return MultiProvider(
+          providers: [
+            StreamProvider<List<NotificationModel>>.value(
+              value: notificationService.getUserNotificationList(),
+              initialData: const [],
+            ),
+            StreamProvider<List<Product>>.value(
+              value: productShareService.getUserProducts(),
+              initialData: const [],
+            ),
+            StreamProvider<DocumentSnapshot?>.value(
+              value: userController.getPath().snapshots(),
+              initialData: null,
+            ),
+            Provider<User?>.value(value: user),
+          ],
+          child: builder(context, snapshot),
+        );
       },
     );
   }
